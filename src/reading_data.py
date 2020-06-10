@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from setup import *
 import pandas as pd
+import os
 
 
 def read_random_images_by_label(label, verbose=True):
@@ -45,13 +46,13 @@ class Data:
         cat: [train] [test]
         """
         assert idx < len(self.data_file_list[cat][0])
-        return cv2.imread(self.data_file_list[cat][0][idx]), np.asarray(self.data_file_list[cat][1][idx])
+        return cv2.imread(self.data_file_list[cat][0][idx], 0), np.asarray(self.data_file_list[cat][1][idx])
 
     def get_rand_image(self, _label):
         assert _label in range(6)
         mask = np.where(np.asarray(self.data_file_list["train"][1]) == _label)
         _idx = np.random.randint(0, len(mask[0]), 1)[0]
-        return cv2.imread(self.data_file_list['train'][0][mask[0][_idx]]), mask[0][_idx]
+        return cv2.imread(self.data_file_list['train'][0][mask[0][_idx]], 0), mask[0][_idx]
 
 
 if __name__ == '__main__':
