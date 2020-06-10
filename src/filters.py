@@ -9,6 +9,7 @@ def laplacian_filter(src, kernel_size=3):
 
 def sobel_x_filter(src, kernel_size):
     sobelx = cv2.Sobel(src, cv2.CV_64F, 1, 0, kernel_size)
+    return sobelx
 
 
 if __name__ == '__main__':
