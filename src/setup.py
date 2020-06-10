@@ -4,8 +4,9 @@ import os
 print("         ML COURSE FINAL PROJECT         ")
 print("                Fall 2020                ")
 
-main_project = os.path.dirname(__file__)
-sys.path.append(os.path.dirname(__file__))
+main_project = os.path.dirname(os.path.dirname(__file__))
+print(main_project)
+sys.path.append(main_project)
 print("\n# PYTHON PATH:")
 [print(path) for path in sys.path]
 
