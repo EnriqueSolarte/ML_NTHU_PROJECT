@@ -37,17 +37,18 @@ def he(img):
 
 
 if __name__ == '__main__':
+    data = Data()
+    id_class = 1
     while True:
-        img_org = read_random_images_by_label(label=0, verbose=False)
+        # img_org = data.read_random_images_by_label(label=classes[id_class], verbose=False)
+        img_org = data.read_random_image_by_cat(cat="train", verbose=True)
 
-        img_blurred = cv2.GaussianBlur(img_org, (3, 3), cv2.CV_64F, 1)
-
+        # img_blurred = cv2.GaussianBlur(img_org, (3, 3), cv2.CV_64F, 1)
         # img_blurred = img_org
         # cv2.imshow("Filtered Image", he(img_blurred))
+        # img_lap = scale_to_unit(scale_to_unit(laplacian_filter(img_blurred)) + scale_to_unit(img_blurred))
 
-        img_lap = scale_to_unit(scale_to_unit(laplacian_filter(img_blurred)) + scale_to_unit(img_blurred))
-
-        cv2.imshow("Sharp", he(img_blurred))
+        cv2.imshow("Sharp", he(img_org))
         cv2.imshow("Original Image", img_org)
 
         if cv2.waitKey(0) == 27:
