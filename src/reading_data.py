@@ -3,6 +3,41 @@ import numpy as np
 from setup import *
 import pandas as pd
 import os
+import shutil
+from glob import glob
+
+
+def sort_dataset():
+    assert os.path.isdir(DATA_TRAIN_DIR)
+    # Reading csv file for training data
+    dt_frame = pd.read_csv(os.path.join(DATA_DIR, "train.csv")).values
+    for idx, class_label in enumerate(classes):
+        path = os.path.join(DATA_TRAIN_DIR, class_label)
+        if not os.path.isdir(path):
+            try:
+                os.mkdir(path)
+            except OSError:
+                print("Creation of the directory %s failed" % path)
+            else:
+                print("Successfully created the directory %s " % path)
+
+        list_files_org = [os.path.join(DATA_TRAIN_DIR, file) for file in dt_frame[dt_frame[:, 1] == idx, 0]]
+        list_files_destine = [os.path.join(DATA_TRAIN_DIR, class_label, file) for file in
+                              dt_frame[dt_frame[:, 1] == idx, 0]]
+        [shutil.move(src, dst) for src, dst in zip(list_files_org, list_files_destine) if
+         os.path.isfile(src)]
+    print("Dataset has been sorted")
+
+
+def unsort_dataset():
+    assert os.path.isdir(DATA_TRAIN_DIR)
+    for class_dir in classes:
+
+        list_files_org = glob(os.path.join(DATA_TRAIN_DIR, class_dir, "*.png"))
+        list_files_destine = [os.path.join(DATA_TRAIN_DIR, os.path.split(file)[1]) for file in list_files_org]
+        [shutil.move(src, dst) for src, dst in zip(list_files_org, list_files_destine) if
+         os.path.isfile(src)]
+    print("Dataset has been unsorted")
 
 
 def read_random_images_by_label(label, verbose=True):
@@ -56,10 +91,12 @@ class Data:
 
 
 if __name__ == '__main__':
-    while True:
-        image1 = read_random_image_by_cat("train")
-        image2 = read_random_images_by_label(label=0)
-        cv2.imshow("Image1", image1)
-        cv2.imshow("Image2", image2)
-        if cv2.waitKey(0) == 27:
-            break
+    sort_dataset()
+    # unsort_dataset()
+    # while True:
+    #     image1 = read_random_image_by_cat("train")
+    #     image2 = read_random_images_by_label(label=0)
+    #     cv2.imshow("Image1", image1)
+    #     cv2.imshow("Image2", image2)
+    #     if cv2.waitKey(0) == 27:
+    #         break
