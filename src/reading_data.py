@@ -24,9 +24,9 @@ class Data:
         image_file = os.path.join(DATA_TRAIN_DIR, classes[self.dt_dict[cat][idx, 1]], self.dt_dict[cat][idx, 0])
         return cv2.imread(image_file, 0), classes[self.dt_dict[cat][idx, 1]]
 
-    def get_rand_sample(self, label):
+    @staticmethod
+    def get_rand_sample(label):
         assert label in classes
-        self.sort_dataset()
         image_file = np.random.choice(glob(os.path.join(DATA_TRAIN_DIR, label, "*.png")))
 
         return cv2.imread(image_file, 0), os.path.split(image_file)[1]
