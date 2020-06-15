@@ -27,7 +27,8 @@ Train_batch, Test_batch, Val_batch = classifier_cnn.Images_into_batches(train_di
 # Train the model
 model = classifier_cnn.model_train(model, Train_batch, Val_batch, epochs, batch_size)
 
-# Predict  
+# Predict
+# ! predition doesn't work
 predicted = classifier_cnn.model_predict(model, Test_batch)
 
 # Calculate accuracy
