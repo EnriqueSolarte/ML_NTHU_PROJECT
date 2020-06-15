@@ -55,7 +55,7 @@ def AlexNetModel():
 
     model = Model(inputs=input, outputs=output)
 
-    model.compile(optimizer='sgd', loss='categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer='Adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
     return model
 

@@ -1,5 +1,5 @@
 from setup import *
-from src.reading_data import *
+from reading_data import *
 from skimage import exposure as ex
 
 
@@ -31,7 +31,7 @@ def sobel_y_filter(src, kernel_size=3):
     return sobel
 
 
-def he(img):
+def histogram_enhancement(img):
     output = ex.equalize_hist(img)
     return scale_to_255(output)
 
@@ -48,7 +48,7 @@ if __name__ == '__main__':
         # cv2.imshow("Filtered Image", he(img_blurred))
         # img_lap = scale_to_unit(scale_to_unit(laplacian_filter(img_blurred)) + scale_to_unit(img_blurred))
 
-        cv2.imshow("Sharp", he(img_org))
+        cv2.imshow("Sharp", histogram_enhancement(img_org))
         cv2.imshow("Original Image", img_org)
 
         if cv2.waitKey(0) == 27:

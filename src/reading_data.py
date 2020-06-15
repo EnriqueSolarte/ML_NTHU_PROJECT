@@ -5,6 +5,7 @@ import pandas as pd
 import os
 import shutil
 from glob import glob
+import filters
 
 
 class Data:
@@ -17,6 +18,10 @@ class Data:
             self.dt_dict[cat] = dt
             self.length[cat] = dt.shape[0]
         self.sort_dataset()
+
+        self.std = None
+        self.mean = None
+        self.sum_pxl = 0.0
 
     def get_sample(self, cat, idx=0):
         assert cat in ["train", "test"]
@@ -89,6 +94,22 @@ class Data:
                                 0.01,
                                 cv2.LINE_4)
         return image
+
+    def get_tensor_images(self, cat, filtered=True):
+        assert cat in ["train", "test"]
+
+        w, h = self.get_sample(cat)[0].shape
+        _tensor_images = np.zeros((w * h, self.length[cat]))
+        _tensor_labels = -np.ones((self.length[cat]), )
+
+        for idx in range(self.length[cat]):
+            image, label = self.get_sample(cat, idx)
+            if filtered:
+                _tensor_images[:, idx] = ((filters.histogram_enhancement(image) / 255) - 0.5).reshape((-1,))
+            else:
+                _tensor_images[:, idx] = ((image / 255) - 0.5).reshape((-1,))
+            _tensor_labels[idx] = classes.index(label)
+        return _tensor_images, _tensor_labels.astype(np.int)
 
 
 if __name__ == '__main__':
