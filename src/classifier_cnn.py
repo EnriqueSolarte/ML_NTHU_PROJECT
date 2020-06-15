@@ -2,7 +2,7 @@ import os
 import numpy as np
 import csv
 from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, MaxPool2D, Flatten, Dense, Dropout
-from tensorflow.keras import Model
+from tensorflow.keras import Model, losses
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.preprocessing.image import load_img
@@ -98,13 +98,13 @@ def Images_into_batches(train_dir, test_dir, val_dir, batch_size):
     return train_generator, testing_generator, val_generator
 
 
-def model_train(model, train_generator, testing_generator, epochs, batch_size):
+def model_train(model, train_generator, validation_generator, epochs, batch_size):
     model.fit_generator(
         train_generator,
         steps_per_epoch=np.floor(train_generator.n / batch_size),
         epochs=epochs,
-        validation_data=testing_generator,
-        validation_steps=np.floor(testing_generator.n / batch_size))
+        validation_data=validation_generator,
+        validation_steps=np.floor(validation_generator.n / batch_size))
 
     return model
 
