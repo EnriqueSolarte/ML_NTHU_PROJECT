@@ -13,6 +13,7 @@ print("\n# GLOBAL VARIABLES:")
 
 DATA_DIR = os.path.join(main_project, "data")
 DATA_TRAIN_DIR = os.path.join(main_project, "data", "train_images")
+DATA_VALIDATION_DIR = os.path.join(main_project, "data", "validation_images")
 DATA_TEST_DIR = os.path.join(main_project, "data", "test_images")
 SRC_DIR = os.path.join(main_project, "src")
 print("DATA_DIR: {}".format(DATA_DIR))
