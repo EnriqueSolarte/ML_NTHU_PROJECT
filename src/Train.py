@@ -16,13 +16,14 @@ batch_size = 5
 epochs = 2
 
 # Convert dataset into batches for training
-Train_batch,Test_batch,Val_batch = classifier_cnn.Images_into_batches(Train_dir, Test_dir, Val_dir, batch_size)
+Train_batch,Val_batch = classifier_cnn.Images_into_batches(Train_dir, Val_dir, batch_size)
 
 # Train the model
 model = classifier_cnn.model_train(model, Train_batch, Val_batch, epochs, batch_size)
 
+image_dir = '/Users/hardysmbp/Documents/ML/Final/ML_final_project_NTHU/data/test_images/horizontal_defect/train_02515.png'
 # Predict  
-predicted = classifier_cnn.model_predict(model, Test_batch)
+predicted = classifier_cnn.model_predict(model, image_dir)
 
 # Calculate accuracy
 test_csv_path = os.path.join(os.path.abspath('..'),'data/train.csv')# Path of testing csv
