@@ -60,11 +60,10 @@ def AlexNetModel():
     return model
 
 
-def Images_into_batches(train_dir, test_dir, val_dir, batch_size):
+def Images_into_batches(train_dir, val_dir, batch_size):
     image_width, image_height = 224, 224
 
     train_datagen = ImageDataGenerator(rescale=1 / 255)
-    test_datagen = ImageDataGenerator(rescale=1 / 255)
     val_datagen = ImageDataGenerator(rescale=1 / 255)
 
     train_generator = train_datagen.flow_from_directory(
@@ -76,16 +75,6 @@ def Images_into_batches(train_dir, test_dir, val_dir, batch_size):
         # class_mode='categorical',#categorical: one-hot encoding format class label
         classes=['normal', 'void', 'horizontal_defect', 'vertical_defect', 'edge_defect', 'particle'])
 
-    testing_generator = test_datagen.flow_from_directory(
-        test_dir,
-        # color_mode='grayscale',
-        target_size=(image_width, image_height),
-        batch_size=1,
-        # batch_size=sum(len(files) for _, _, files in os.walk(test_dir))-1,
-        # color_mode='rgb',
-        # class_mode='categorical',
-        classes=['normal', 'void', 'horizontal_defect', 'vertical_defect', 'edge_defect', 'particle'])
-
     val_generator = val_datagen.flow_from_directory(
         val_dir,
         # color_mode='grayscale',
@@ -95,7 +84,7 @@ def Images_into_batches(train_dir, test_dir, val_dir, batch_size):
         # class_mode='categorical',
         classes=['normal', 'void', 'horizontal_defect', 'vertical_defect', 'edge_defect', 'particle'])
 
-    return train_generator, testing_generator, val_generator
+    return train_generator, val_generator
 
 
 def model_train(model, train_generator, validation_generator, epochs, batch_size):
@@ -109,34 +98,18 @@ def model_train(model, train_generator, validation_generator, epochs, batch_size
     return model
 
 
-def model_predict(model, test_batch):
-    results = []
-    f_path = test_batch.filenames
-    # step = sum(len(files) for _, _, files in os.walk(test_batch.directory))-1
-    predict = model.predict_generator(test_batch, steps=len(f_path), verbose=0)
-    for i in range(0, len(predict)):
-        max_predict = np.argmax(predict[i])
-        # Stores the file names by excluding the directory names and stores the predicted results 
-        results.append([(f_path[i].split("/"))[-1], max_predict])
+def model_predict(model, image_dir):
+    # Loads image into PIL
+    img = load_img(image_dir, grayscale=False, color_mode="rgb", target_size=(224, 224), interpolation="nearest")
+    # Converts PIL to np array
+    img = img_to_array(img)
+    # creates a batch for single image
+    img = np.array([img])
+    # Finds the index of highest value after prediction [0 0 0 1 0 0]
+    predict = model.predict(img)
+    result = (np.argmax(predict))
 
-    '''
-    results =[]
-    predict = []
-    for r, d, f in os.walk(test_dir): # Reads all file in folder
-        for file in f:
-            if '.png' in file:   
-                # Loads image into PIL
-                img = load_img(os.path.join(r, file),grayscale=False, color_mode="rgb", target_size=(224,224),interpolation="nearest")
-                # Converts PIL to np array
-                img = img_to_array(img)
-                # creates a batch for single image
-                img = np.array([img])
-                # Finds the index of highest value after prediction [0 0 0 1 0 0]
-                predict.append(model.predict(img))
-                result = (np.argmax(predict[-1]))
-                results.append([file,result])
-                '''
-    return results
+    return result
 
 
 def calculate_accuracy(predicted, test_csv_path):

@@ -33,7 +33,16 @@ def sobel_y_filter(src, kernel_size=3):
 
 def he(img):
     output = ex.equalize_hist(img)
-    return scale_to_255(output)
+    return scale_to_unit(output)
+
+
+def random_he(img):
+    filtering = np.random.choice([True, False])
+    if filtering:
+        output = ex.equalize_hist(img)
+    else:
+        output = img
+    return scale_to_unit(output)
 
 
 if __name__ == '__main__':

@@ -8,7 +8,7 @@ from glob import glob
 
 
 class Data:
-    def __init__(self):
+    def __init__(self, validation_ratio=0.2):
         self.dt_dict = dict()
         self.length = dict()
         self.isSorted = False
@@ -18,9 +18,9 @@ class Data:
             self.dt_dict[cat] = dt
             self.length[cat] = dt.shape[0]
         self.unsort_dataset()
-        self.sort_dataset()
+        self.sort_dataset(split_data_ratio=validation_ratio)
 
-    def sort_dataset(self, ratio_test_data=0.2):
+    def sort_dataset(self, split_data_ratio=0.5):
         assert os.path.isdir(DATA_TRAIN_DIR)
         # Reading csv file for training data
         dt_frame = pd.read_csv(os.path.join(DATA_DIR, "train.csv")).values
@@ -38,7 +38,7 @@ class Data:
             # * All files per category
             files_per_cat = [file for file in dt_frame[dt_frame[:, 1] == idx, 0]]
             np.random.shuffle(files_per_cat)
-            idx_split = int(len(files_per_cat) * ratio_test_data)
+            idx_split = int(len(files_per_cat) * split_data_ratio)
             for list_images, dir_ in zip([files_per_cat[idx_split:], files_per_cat[0:idx_split]],
                                          [DATA_TRAIN_DIR, DATA_VALIDATION_DIR]):
                 list_files_destine = [os.path.join(dir_, class_label, file) for file in list_images]
@@ -98,7 +98,8 @@ class Data:
         assert idx < self.length[cat]
         image_file = os.path.join(DATA_TRAIN_DIR, classes[self.dt_dict[cat][idx, 1]], self.dt_dict[cat][idx, 0])
         if not os.path.isfile(image_file):
-            image_file = os.path.join(DATA_VALIDATION_DIR, classes[self.dt_dict[cat][idx, 1]], self.dt_dict[cat][idx, 0])
+            image_file = os.path.join(DATA_VALIDATION_DIR, classes[self.dt_dict[cat][idx, 1]],
+                                      self.dt_dict[cat][idx, 0])
         return cv2.imread(image_file, 0), classes[self.dt_dict[cat][idx, 1]]
 
 
