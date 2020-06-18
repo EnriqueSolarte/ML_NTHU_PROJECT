@@ -113,6 +113,7 @@ class Classifier:
     def get_data_generator(self, path_dir, enhancement=False, random_boost=False):
         assert os.path.isdir(path_dir)
         if not random_boost:
+            self.name += "he_{}.".format(enhancement)
             if enhancement:
                 dt_generator = ImageDataGenerator(rescale=1 / 255,
                                                   horizontal_flip=True,
@@ -123,6 +124,7 @@ class Classifier:
                                                   horizontal_flip=True,
                                                   vertical_flip=True)
         else:
+            self.name += "rand_he_{}.".format(random_boost)
             dt_generator = ImageDataGenerator(rescale=1 / 255,
                                               horizontal_flip=True,
                                               vertical_flip=True,
