@@ -85,7 +85,7 @@ class Classifier:
                    strides=conv_layers[0][2],
                    padding='same',
                    activation='relu')(_input)
-
+        x = BatchNormalization()(x)
         x = MaxPool2D(pool_size=3, strides=2)(x)
 
         for layer_ in conv_layers[1:]:
@@ -95,6 +95,7 @@ class Classifier:
                        strides=layer_[2],
                        padding='same',
                        activation='relu')(x)
+            x = BatchNormalization()(x)
             x = MaxPool2D(pool_size=3, strides=2)(x)
 
         x = Flatten()(x)
