@@ -1,7 +1,8 @@
-from setup import *
-from src.reading_data import *
+import setup as config
+from reading_data import Data
 from skimage import exposure as ex
-
+import numpy as np
+import cv2
 
 def scale_to_unit(src):
     max_value = np.max(src)

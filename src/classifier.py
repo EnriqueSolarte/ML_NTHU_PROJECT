@@ -1,18 +1,17 @@
 from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, MaxPool2D, Flatten, Dense, Dropout
 from tensorflow.keras import Model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from setup import *
+import setup as config
 import numpy as np
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
-from setup import *
 from reading_data import Data
 from filters import he, random_he
 from datetime import datetime
-
+import os 
 
 class Classifier:
     def __init__(self, input_shape, batch_size=2):
-        self.name = "{}x{}-".format(input_shape[0], input_shape[1])
+        self.name = "{}x{}-{}".format(input_shape[0], input_shape[1], batch_size)
         self.model = None
         self.input_shape = input_shape
         self.image_width = input_shape[0]
@@ -24,7 +23,7 @@ class Classifier:
         return self.name + data_time_obj.strftime("%y.%m.%d-%H.%M.%s")
 
     def set_default_AlexNet_Model(self):
-        self.name += "alex-net-{}x{}-".format(self.image_height, self.image_width)
+        self.name += "-AlexNet-{}x{}-".format(self.image_height, self.image_width)
         _input = Input(shape=(self.image_height, self.image_width, 1))
 
         # ! 1st convolution layer
@@ -102,7 +101,8 @@ class Classifier:
 
         for layer_ in dense_layers:
             self.name += "[D{}].".format(layer_)
-            x = Dense(units=layer_, activation='relu')(x)
+            if layer_ is not None or layer_ != 0:
+                x = Dense(units=layer_, activation='relu')(x)
 
         x = Dropout(rate=0.5)(x)
 
@@ -131,7 +131,7 @@ class Classifier:
         return dt_generator.flow_from_directory(path_dir,
                                                 target_size=(self.image_width, self.image_height),  # input image size
                                                 batch_size=self.batch_size,  # batch size
-                                                classes=classes)
+                                                classes=config.classes)
 
         # dt_generator = ImageDataGenerator(rescale=1 / 255)
         # return dt_generator.flow_from_directory(path_dir,
@@ -164,9 +164,9 @@ class Classifier:
 
 
 if __name__ == '__main__':
-    dt = Data()  # * Load the dataset in our expected format from the provided by AIDEA
-    cnn = Classifier()
-    val_data = cnn.get_data_generator(DATA_VALIDATION_DIR, enhancement=True)
-    train_data = cnn.get_data_generator(DATA_TRAIN_DIR, enhancement=True)
+    dt = Data()  # ! Load the dataset in our expected format from the provided by AIDEA
+    cnn = Classifier((224, 224))
+    val_data = cnn.get_data_generator(config.DATA_VALIDATION_DIR, enhancement=True)
+    train_data = cnn.get_data_generator(config.DATA_TRAIN_DIR, enhancement=True)
     cnn.train(gen_train=train_data, gen_val=val_data, epochs=10)
     print("done")
