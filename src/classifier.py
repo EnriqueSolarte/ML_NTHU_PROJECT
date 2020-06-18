@@ -89,7 +89,7 @@ class Classifier:
         x = MaxPool2D(pool_size=3, strides=2)(x)
 
         for layer_ in conv_layers[1:]:
-            self.name += "[C{}{}{}].".format(layer_[0], layer_[1], layer_[2])
+            self.name += "[C{}.{}.{}]".format(layer_[0], layer_[1], layer_[2])
             x = Conv2D(filters=layer_[0],
                        kernel_size=layer_[1],
                        strides=layer_[2],
@@ -100,7 +100,7 @@ class Classifier:
         x = Flatten()(x)
 
         for layer_ in dense_layers:
-            self.name += "[D{}].".format(layer_)
+            self.name += "[D{}]".format(layer_)
             if layer_ is not None or layer_ != 0:
                 x = Dense(units=layer_, activation='relu')(x)
 
@@ -143,7 +143,7 @@ class Classifier:
 
     def train(self, gen_train, gen_val, epochs, callbacks):
         self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-        self.model.fit_generator(
+        self.model.fit(
             gen_train,
             steps_per_epoch=np.floor(gen_train.n / self.batch_size),
             epochs=epochs,
