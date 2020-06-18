@@ -143,7 +143,7 @@ class Classifier:
         #                                         classes=classes)
 
     def train(self, gen_train, gen_val, epochs, callbacks):
-        self.model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+        self.model.compile(loss='categorical_crossentropy', metrics=['accuracy'])
         self.model.fit(
             gen_train,
             steps_per_epoch=np.floor(gen_train.n / self.batch_size),
@@ -171,5 +171,5 @@ if __name__ == '__main__':
     cnn = Classifier((224, 224))
     val_data = cnn.get_data_generator(config.DATA_VALIDATION_DIR, enhancement=True)
     train_data = cnn.get_data_generator(config.DATA_TRAIN_DIR, enhancement=True)
-    cnn.train(gen_train=train_data, gen_val=val_data, epochs=10)
+    cnn.train(gen_train=train_data, gen_val=val_data, epochs=10, callbacks=None)
     print("done")

@@ -7,13 +7,14 @@ import os
 # dt = Data()  # * Load the dataset in our expected format from the provided by AIDEA
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-cnn = Classifier(input_shape=(224, 224), batch_size=5)
+cnn = Classifier(input_shape=(224, 224), batch_size=10)
 cnn.set_default_AlexNet_Model()
 
 val_data = cnn.get_data_generator(config.DATA_VALIDATION_DIR, enhancement=False)
 train_data = cnn.get_data_generator(config.DATA_TRAIN_DIR, enhancement=False)
-NAME = cnn.get_name()
+NAME = cnn.get_name() + "SGD"
 
-tensorboard = TensorBoard(log_dir=os.path.join(config.DATA_LOG, NAME))
-cnn.train(gen_train=train_data, gen_val=val_data, epochs=50, callbacks=tensorboard)
+tensorboard = TensorBoard(log_dir=os.path.join(config.DATA_LOG, "RUNNING", NAME))
+cnn.train(gen_train=train_data, gen_val=val_data,
+          epochs=50, callbacks=tensorboard)
 print("done")

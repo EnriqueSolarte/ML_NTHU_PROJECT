@@ -9,13 +9,13 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
 # dt = Data()  # * Load the dataset in our expected format from the provided by AIDEA
-cnn = Classifier(input_shape=(224, 224), batch_size=2)
-conv_layers = [(96, 11, 4), (256, 5, 1), (384, 3, 1), (256, 3, 1)]
-dense_layers = [4096]
+cnn = Classifier(input_shape=(224, 224), batch_size=10)
+conv_layers = [(96, 11, 4), (256, 5, 1), (256, 3, 1)]
+dense_layers = [1000]
 
 cnn.set_custom_model(conv_layers=conv_layers, dense_layers=dense_layers)
-NAME = cnn.get_name() + "_batchNorm"
-tensorboard = TensorBoard(log_dir=os.path.join(config.DATA_LOG, NAME))
+NAME = cnn.get_name()
+tensorboard = TensorBoard(log_dir=os.path.join(config.DATA_LOG, "RUNNING", NAME))
 
 val_data = cnn.get_data_generator(config.DATA_VALIDATION_DIR, enhancement=True)
 train_data = cnn.get_data_generator(config.DATA_TRAIN_DIR, enhancement=True)
