@@ -1,13 +1,15 @@
-from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, MaxPool2D, Flatten, Dense, Dropout
+from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, MaxPool2D, Flatten, Dense, Dropout, Activation
 from tensorflow.keras import Model
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import setup as config
 import numpy as np
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
+import tensorflow as tf
 from reading_data import Data
 from filters import he, random_he
 from datetime import datetime
-import os 
+import os
+
 
 class Classifier:
     def __init__(self, input_shape, batch_size=2):
@@ -31,18 +33,20 @@ class Classifier:
                    kernel_size=11,
                    strides=4,
                    padding='same',
-                   activation='relu')(_input)
+                   use_bias=False)(_input)
 
         x = BatchNormalization()(x)
+        x = Activation('relu')(x)
         x = MaxPool2D(pool_size=3, strides=2)(x)
 
         # ! 2nd convolution layer
         x = Conv2D(filters=256,
                    kernel_size=5,
                    padding='same',
-                   activation='relu')(x)
+                   use_bias=False)(x)
 
         x = BatchNormalization()(x)
+        x = Activation('relu')(x)
         x = MaxPool2D(pool_size=3, strides=2)(x)
 
         # ! 3rd convolution layer
@@ -61,9 +65,10 @@ class Classifier:
         x = Conv2D(filters=256,
                    kernel_size=3,
                    padding='same',
-                   activation='relu')(x)
+                   use_bias=False)(x)
 
         x = BatchNormalization()(x)
+        X = Activation('relu')(x)
         x = MaxPool2D(pool_size=3, strides=2)(x)
 
         x = Flatten()(x)
@@ -143,7 +148,8 @@ class Classifier:
         #                                         classes=classes)
 
     def train(self, gen_train, gen_val, epochs, callbacks):
-        self.model.compile(loss='categorical_crossentropy', metrics=['accuracy'])
+        self.model.compile(optimizer=tf.keras.optimizers.SGD(
+            learning_rate=0.01, momentum=0.01, nesterov=False), loss='categorical_crossentropy', metrics=['accuracy'])
         self.model.fit(
             gen_train,
             steps_per_epoch=np.floor(gen_train.n / self.batch_size),

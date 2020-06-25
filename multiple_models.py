@@ -6,12 +6,12 @@ from tensorflow.keras.callbacks import TensorBoard
 import tensorflow as tf
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 # dt = Data()  # * Load the dataset in our expected format from the provided by AIDEA
 cnn = Classifier(input_shape=(224, 224), batch_size=10)
-conv_layers = [(96, 11, 4), (256, 5, 1), (256, 3, 1)]
-dense_layers = [1000]
+conv_layers = [(96, 5, 1), (256, 5, 1), (386, 3, 1), (256, 3, 1)]
+dense_layers = [1024, 1024, 100]
 
 cnn.set_custom_model(conv_layers=conv_layers, dense_layers=dense_layers)
 NAME = cnn.get_name()

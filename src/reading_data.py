@@ -9,7 +9,7 @@ import cv2
 
 
 class Data:
-    def __init__(self, validation_ratio=0.2):
+    def __init__(self, validation_ratio=0.5):
         self.dt_dict = dict()
         self.length = dict()
         self.isSorted = False
