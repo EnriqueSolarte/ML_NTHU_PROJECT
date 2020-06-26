@@ -1,7 +1,7 @@
 from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, MaxPool2D, Flatten, Dense, Dropout, Activation
-from tensorflow.keras import Model
+from tensorflow.keras import Model, optimizers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import setup as config
+import setup as st
 import numpy as np
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 import tensorflow as tf
@@ -13,19 +13,23 @@ import os
 
 class Classifier:
     def __init__(self, input_shape, batch_size=2):
-        self.name = "{}x{}-{}".format(input_shape[0], input_shape[1], batch_size)
+        data_time_obj = datetime.now()
         self.model = None
         self.input_shape = input_shape
         self.image_width = input_shape[0]
         self.image_height = input_shape[1]
         self.batch_size = batch_size
+        self.random_boost = False
+        self.log_name = data_time_obj.strftime("%y.%m.%d-%H.%M.%s")
+        self.callbacks = []
 
-    def get_name(self):
-        data_time_obj = datetime.now()
-        return self.name + data_time_obj.strftime("%y.%m.%d-%H.%M.%s")
+    def set_log_name(self, cfg):
+
+        key_list = cfg.keys()
+        for key in key_list:
+            self.log_name += "-" + key + str(cfg[key])
 
     def set_default_AlexNet_Model(self):
-        self.name += "-AlexNet-{}x{}-".format(self.image_height, self.image_width)
         _input = Input(shape=(self.image_height, self.image_width, 1))
 
         # ! 1st convolution layer
@@ -116,47 +120,53 @@ class Classifier:
 
         self.model = Model(inputs=_input, outputs=output)
 
-    def get_data_generator(self, path_dir, enhancement=False, random_boost=False):
+    def get_data_generator(self, path_dir, dip_filter=False):
         assert os.path.isdir(path_dir)
-        if not random_boost:
-            self.name += "he_{}.".format(enhancement)
-            if enhancement:
-                dt_generator = ImageDataGenerator(rescale=1 / 255,
-                                                  horizontal_flip=True,
-                                                  vertical_flip=True,
-                                                  preprocessing_function=he)
-            else:
-                dt_generator = ImageDataGenerator(rescale=1 / 255,
-                                                  horizontal_flip=True,
-                                                  vertical_flip=True)
-        else:
-            self.name += "rand_he_{}.".format(random_boost)
+        if dip_filter:
             dt_generator = ImageDataGenerator(rescale=1 / 255,
                                               horizontal_flip=True,
                                               vertical_flip=True,
-                                              preprocessing_function=random_he)
+                                              preprocessing_function=self.dip_filtering)
+        else:
+            dt_generator = ImageDataGenerator(rescale=1 / 255,
+                                              horizontal_flip=True,
+                                              vertical_flip=True)
 
         return dt_generator.flow_from_directory(path_dir,
                                                 target_size=(self.image_width, self.image_height),  # input image size
                                                 batch_size=self.batch_size,  # batch size
-                                                classes=config.classes)
+                                                classes=st.CLASSES)
 
-        # dt_generator = ImageDataGenerator(rescale=1 / 255)
-        # return dt_generator.flow_from_directory(path_dir,
-        #                                         target_size=(self.image_width, self.image_height),  # input image size
-        #                                         batch_size=self.batch_size,  # batch size
-        #                                         classes=classes)
+    def train(self, gen_train, gen_val, epochs):
+        checkpoint_path = os.path.join(st.DIR_LOG, "RUNNING", self.log_name, "cp-{epoch:04d}.ckpt")
+        # ! Create callback checkpoint
+        model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+            filepath=checkpoint_path,
+            save_weights_only=True,
+            monitor='val_acc',
+            mode='max',
+            save_best_only=True,
+            save_freq=5,
+            verbose=0)
 
-    def train(self, gen_train, gen_val, epochs, callbacks):
-        self.model.compile(optimizer=tf.keras.optimizers.SGD(
-            learning_rate=0.01, momentum=0.01, nesterov=False), loss='categorical_crossentropy', metrics=['accuracy'])
+        self.callbacks.append(model_checkpoint_callback)
+
+        lr_schedule = optimizers.schedules.ExponentialDecay(initial_learning_rate=1e-3,
+                                                            decay_steps=500,
+                                                            decay_rate=0.5)
+
+        self.model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=lr_schedule,
+                                                             momentum=0.01,
+                                                             nesterov=False),
+                           loss='categorical_crossentropy', metrics=['accuracy'])
+
         self.model.fit(
             gen_train,
             steps_per_epoch=np.floor(gen_train.n / self.batch_size),
             epochs=epochs,
             validation_data=gen_val,
             validation_steps=np.floor(gen_val.n / self.batch_size),
-            callbacks=[callbacks])
+            callbacks=self.callbacks)
 
     def model_predict(self, image_path):
         assert os.path.isfile(image_path)
@@ -171,11 +181,18 @@ class Classifier:
         result = np.argmax(predict)
         return result
 
+    def dip_filtering(self, image):
+        if self.random_boost:
+            return he(image)
+        else:
+            return random_he(image)
+
 
 if __name__ == '__main__':
     dt = Data()  # ! Load the dataset in our expected format from the provided by AIDEA
     cnn = Classifier((224, 224))
-    val_data = cnn.get_data_generator(config.DATA_VALIDATION_DIR, enhancement=True)
-    train_data = cnn.get_data_generator(config.DATA_TRAIN_DIR, enhancement=True)
-    cnn.train(gen_train=train_data, gen_val=val_data, epochs=10, callbacks=None)
+    cnn.set_default_AlexNet_Model()
+    val_data = cnn.get_data_generator(st.DATA_VALIDATION_DIR, dip_filter=True)
+    train_data = cnn.get_data_generator(st.DATA_TRAIN_DIR, dip_filter=True)
+    cnn.train(gen_train=train_data, gen_val=val_data, epochs=1)
     print("done")
