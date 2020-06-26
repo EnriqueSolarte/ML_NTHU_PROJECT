@@ -25,7 +25,7 @@ class Data:
         assert os.path.isdir(st.DATA_TRAIN_DIR)
         # Reading csv file for training data
         dt_frame = pd.read_csv(os.path.join(st.DATA_DIR, "train.csv")).values
-        for idx, class_label in enumerate(st.classes):
+        for idx, class_label in enumerate(st.CLASSES):
             for dir_ in [st.DATA_TRAIN_DIR, st.DATA_VALIDATION_DIR]:
                 path = os.path.join(dir_, class_label)
                 if not os.path.isdir(path):
@@ -52,7 +52,7 @@ class Data:
 
     def unsort_dataset(self):
         assert os.path.isdir(st.DATA_TRAIN_DIR)
-        for class_dir in st.classes:
+        for class_dir in st.CLASSES:
             list_files_org = glob(os.path.join(st.DATA_TRAIN_DIR, class_dir, "*.png"))
             list_files_org.extend(glob(os.path.join(st.DATA_VALIDATION_DIR, class_dir, "*.png")))
             list_files_destine = [os.path.join(st.DATA_TRAIN_DIR, os.path.split(file)[1]) for file in list_files_org]
@@ -90,18 +90,18 @@ class Data:
 
     @staticmethod
     def get_rand_sample(label):
-        assert label in st.classes
+        assert label in st.CLASSES
         image_file = np.random.choice(glob(os.path.join(st.DATA_TRAIN_DIR, label, "*.png")))
         return cv2.imread(image_file, 0), os.path.split(image_file)[1]
 
     def get_sample(self, cat, idx=0):
         assert cat in ["train", "test"]
         assert idx < self.length[cat]
-        image_file = os.path.join(st.DATA_TRAIN_DIR, st.classes[self.dt_dict[cat][idx, 1]], self.dt_dict[cat][idx, 0])
+        image_file = os.path.join(st.DATA_TRAIN_DIR, st.CLASSES[self.dt_dict[cat][idx, 1]], self.dt_dict[cat][idx, 0])
         if not os.path.isfile(image_file):
-            image_file = os.path.join(st.DATA_VALIDATION_DIR, st.classes[self.dt_dict[cat][idx, 1]],
+            image_file = os.path.join(st.DATA_VALIDATION_DIR, st.CLASSES[self.dt_dict[cat][idx, 1]],
                                       self.dt_dict[cat][idx, 0])
-        return cv2.imread(image_file, 0), st.classes[self.dt_dict[cat][idx, 1]]
+        return cv2.imread(image_file, 0), st.CLASSES[self.dt_dict[cat][idx, 1]]
 
 
 if __name__ == '__main__':
@@ -109,8 +109,8 @@ if __name__ == '__main__':
     id_class = 0
     while True:
         image1 = data.read_random_image_by_cat("train")
-        image2 = data.read_random_images_by_label(label=st.classes[id_class])
+        image2 = data.read_random_images_by_label(label=st.CLASSES[id_class])
         cv2.imshow("Random Image Selection", image1)
-        cv2.imshow("Random Image Selection in class {}".format(st.classes[id_class]), image2)
+        cv2.imshow("Random Image Selection in class {}".format(st.CLASSES[id_class]), image2)
         if cv2.waitKey(0) == 27:
             break
