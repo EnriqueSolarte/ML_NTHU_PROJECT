@@ -15,10 +15,10 @@ dense_layers = [1024, 1024, 100]
 
 cnn.set_custom_model(conv_layers=conv_layers, dense_layers=dense_layers)
 NAME = cnn.get_name()
-tensorboard = TensorBoard(log_dir=os.path.join(config.DATA_LOG, "RUNNING", NAME))
+tensorboard = TensorBoard(log_dir=os.path.join(config.DIR_LOG, "RUNNING", NAME))
 
-val_data = cnn.get_data_generator(config.DATA_VALIDATION_DIR, enhancement=True)
-train_data = cnn.get_data_generator(config.DATA_TRAIN_DIR, enhancement=True)
+val_data = cnn.get_data_generator(config.DATA_VALIDATION_DIR, dip_filter=True)
+train_data = cnn.get_data_generator(config.DATA_TRAIN_DIR, dip_filter=True)
 
 cnn.train(gen_train=train_data, gen_val=val_data,
           epochs=50, callbacks=tensorboard)
