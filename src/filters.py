@@ -1,6 +1,9 @@
-from setup import *
-from src.reading_data import *
+import setup as config
+from reading_data import Data
 from skimage import exposure as ex
+from scipy import ndimage
+import numpy as np
+import cv2
 
 
 def scale_to_unit(src):
@@ -33,7 +36,26 @@ def sobel_y_filter(src, kernel_size=3):
 
 def he(img):
     output = ex.equalize_hist(img)
-    return scale_to_255(output)
+    return scale_to_unit(output)
+
+
+def low_pass_filter(img):
+    img_filtered = ndimage.gaussian_filter(img, 3)
+    return img_filtered
+
+
+def high_pass_filter(img):
+    img_filtered = ndimage.gaussian_filter(img, 3)
+    return img - img_filtered
+
+
+def random_he(img):
+    filtering = np.random.choice([True, False])
+    if filtering:
+        output = ex.equalize_hist(img)
+    else:
+        output = img
+    return scale_to_unit(output)
 
 
 if __name__ == '__main__':
@@ -43,12 +65,8 @@ if __name__ == '__main__':
         # img_org = data.read_random_images_by_label(label=classes[id_class], verbose=False)
         img_org = data.read_random_image_by_cat(cat="train", verbose=True)
 
-        # img_blurred = cv2.GaussianBlur(img_org, (3, 3), cv2.CV_64F, 1)
-        # img_blurred = img_org
-        # cv2.imshow("Filtered Image", he(img_blurred))
-        # img_lap = scale_to_unit(scale_to_unit(laplacian_filter(img_blurred)) + scale_to_unit(img_blurred))
-
-        cv2.imshow("Sharp", he(img_org))
+        img_filtered = he(img_org)
+        cv2.imshow("Filtered", img_filtered)
         cv2.imshow("Original Image", img_org)
 
         if cv2.waitKey(0) == 27:
