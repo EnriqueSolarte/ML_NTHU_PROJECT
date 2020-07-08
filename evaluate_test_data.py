@@ -50,10 +50,10 @@ if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "2"
     config = dict(shape=(224, 224),
                   dip=True,
-                  #   log="RUNNING",
-                  log="finals",
+                  log="RUNNING",
+                  #   log="finals",
                   #   log="SUCCESSFULLY_TRAINING",
-                  pre_trained="22.05",
+                  pre_trained="08-12.57",
                   extra="final")
 
     eval_model(cfg=config)

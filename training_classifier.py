@@ -9,7 +9,12 @@ import tensorflow as tf
 
 def train(cfg):
     cnn = Classifier(input_shape=cfg["shape"], batch_size=cfg["batch"])
-    cnn.set_default_AlexNet_Model()
+    if cfg["model"] == "AlexNet":
+        cnn.set_default_AlexNet_Model()
+    else:
+        arch = cfg["arch"]
+        cnn.set_custom_model(conv_layers=arch["conv"],
+                             dense_layers=arch["dense"])
     if cfg["random"]:
         cnn.random_boost = True
 
@@ -35,7 +40,7 @@ def train(cfg):
 
 
 if __name__ == '__main__':
-    # Data(validation_ratio=0.00)  # * Load the dataset in our expected format from the provided by AIDEA
+    # Data(validation_ratio=0.25)  # * Load the dataset in our expected format from the provided by AIDEA
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     config = dict(shape=(224, 224),
                   batch=200,
@@ -46,9 +51,13 @@ if __name__ == '__main__':
                   dc_st=10,
                   dc=0.9,
                   mt=0.9,
-                  model="AlexNet",
-                  msk="model6",
-                  pre_trained="21.07",
-                  extra="2107_pretrained_")
+                  #   model="AlexNet",
+                  model=None,
+                  arch=dict(conv=[[96, 11, 4],
+                                  [128, 3, 2]],
+                            dense=[1024]),
+                  msk="model0",
+                  pre_trained=None,
+                  extra="Model_DIP")
 
     train(cfg=config)

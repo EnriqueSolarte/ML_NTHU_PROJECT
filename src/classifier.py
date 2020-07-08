@@ -44,6 +44,8 @@ class Classifier:
         for key in key_list:
             if key == "pre_trained":
                 continue
+            if key == "arch":
+                continue
             self.log_name += "-" + key + str(cfg[key])
 
     def set_default_AlexNet_Model(self):
@@ -125,7 +127,6 @@ class Classifier:
         x = Flatten()(x)
 
         for layer_ in dense_layers:
-            self.name += "[D{}]".format(layer_)
             if layer_ is not None or layer_ != 0:
                 x = Dense(units=layer_, activation='relu')(x)
 
@@ -136,7 +137,7 @@ class Classifier:
         self.model = Model(inputs=_input, outputs=output)
 
     def get_data_generator(self, path_dir, dip_filter=False):
-        assert os.path.isdir(path_dir)
+        assert os.path.isdir(path_dir), "Path does not exist: {}".format(path_dir)
         if dip_filter:
             dt_generator = ImageDataGenerator(rescale=1 / 255,
                                               horizontal_flip=True,
@@ -155,12 +156,12 @@ class Classifier:
 
     def train(self, gen_train, gen_val, epochs):
         checkpoint_path = os.path.join(st.DIR_LOG, "RUNNING", self.log_name,
-                                    #    "'model-{epoch:03d}-{accuracy:03f}.ckpt", 
+                                       #    "'model-{epoch:03d}-{accuracy:03f}.ckpt",
                                        "cp-model.ckpt")
         # ! Create callback checkpoint
         model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                                        save_weights_only=True,
-                                                                       monitor='loss',
+                                                                       monitor='val_loss',
                                                                        mode='min',
                                                                        save_best_only=True,
                                                                        save_freq='epoch',
@@ -175,14 +176,14 @@ class Classifier:
         self.model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=lr_schedule,
                                                              momentum=self.lr["momentum"],
                                                              nesterov=False),
-                           loss=self.custom_loss(self.mask_in[self.model_select]), metrics=['accuracy'])
+                           loss=self.weighted_loss(self.mask_in[self.model_select]), metrics=['accuracy'])
         # self.model.compile(optimizer=tf.keras.optimizers.Adam(),
         #                    loss=self.custom_loss(self.mask_in[self.model_select]), metrics=['accuracy'])
         self.model.fit(gen_train,
                        steps_per_epoch=np.floor(gen_train.n / self.batch_size),
                        epochs=epochs,
-                       #    validation_data=gen_train,
-                       #    validation_steps=np.floor(gen_train.n / self.batch_size),
+                       validation_data=gen_train,
+                       validation_steps=np.floor(gen_train.n / self.batch_size),
                        callbacks=self.callbacks)
 
     def model_predict(self, image_path, dip_filter=False):
@@ -208,9 +209,9 @@ class Classifier:
         else:
             return he(image)
 
-    def custom_loss(self, mask):
+    def weighted_loss(self, mask):
         def loss(y_true, y_pred):
-            return cce(y_pred=y_pred*mask, y_true=y_true*mask)
+            return cce(y_pred=y_pred*mask, y_true=y_true)
         return loss
 
 
