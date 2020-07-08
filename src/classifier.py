@@ -29,11 +29,11 @@ class Classifier:
                        decay_rate=0.5)
 
         self.mask_in = dict(model0=np.array((1, 1, 1, 1, 1, 1)),
-                            model1=np.array((0.2, 0.5, 1, 0.5, 0.5, 0.2)),
+                            model1=np.array((0.9, 0.5, 0.2, 0.2, 0.5, 0.9)),
                             model2=np.array((0.1, 0.2, 0.3, 1, 0.3, 0.1)),
                             model3=np.array((0.99, 0.95, 0.93, 0.85, 0.93, 0.99)),
                             model4=np.array((0.99, 0.95, 0.93, 1.0, 0.93, 0.99)),
-                            model5=np.array((0.5, 0.5, 0.5, 0.99, 0.5, 0.5)),
+                            model5=np.array((0.5, 0.5, 0.5, 0.5, 0.5, 0.5)),
                             model6=np.array((0.0, 0.0, 0.0, 0.99, 0.0, 0.0)),
                             model7=np.array((0.0, 0.5, 1.0, 1.0, 0.5, 0.0)))
         self.model_select = "model0"
