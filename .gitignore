@@ -3,4 +3,6 @@
 .DS_Store
 *.pyc
 .vscode
-log/
+*checkpoint
+*cp*
+*cp*.index
