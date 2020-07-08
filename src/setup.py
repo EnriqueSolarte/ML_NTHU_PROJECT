@@ -12,8 +12,10 @@ print("\n# PYTHON PATH:")
 
 print("\n# GLOBAL VARIABLES:")
 
-SERVER_DATA = os.path.join(main_project, "data")
-# SERVER_DATA = '/media/NFS/kike/ml-course/data'
+# ! This line is for local server
+# SERVER_DATA = os.path.join(main_project, "data")
+# ! This line is for remote server
+SERVER_DATA = '/media/NFS/kike/ml-course/data'
 DATA_DIR = os.path.join(SERVER_DATA)
 DATA_TRAIN_DIR = os.path.join(SERVER_DATA, "train_images")
 DATA_VALIDATION_DIR = os.path.join(SERVER_DATA, "validation_images")

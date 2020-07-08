@@ -1,6 +1,8 @@
 from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, MaxPool2D, Flatten, Dense, Dropout, Activation
 from tensorflow.keras import Model, optimizers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.losses import categorical_crossentropy as cce
+from tensorflow.keras.backend import get_value
 import setup as st
 import numpy as np
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
@@ -20,13 +22,28 @@ class Classifier:
         self.image_height = input_shape[1]
         self.batch_size = batch_size
         self.random_boost = False
-        self.log_name = data_time_obj.strftime("%y.%m.%d-%H.%M.%s")
+        self.log_name = data_time_obj.strftime("%y.%m.%d-%H.%M.%S")
         self.callbacks = []
+        self.lr = dict(lr=1e-3,
+                       decay_steps=200,
+                       decay_rate=0.5)
+
+        self.mask_in = dict(model0=np.array((1, 1, 1, 1, 1, 1)),
+                            model1=np.array((0.2, 0.5, 1, 0.5, 0.5, 0.2)),
+                            model2=np.array((0.1, 0.2, 0.3, 1, 0.3, 0.1)),
+                            model3=np.array((0.99, 0.95, 0.93, 0.85, 0.93, 0.99)),
+                            model4=np.array((0.99, 0.95, 0.93, 1.0, 0.93, 0.99)),
+                            model5=np.array((0.5, 0.5, 0.5, 0.99, 0.5, 0.5)),
+                            model6=np.array((0.0, 0.0, 0.0, 0.99, 0.0, 0.0)),
+                            model7=np.array((0.0, 0.5, 1.0, 1.0, 0.5, 0.0)))
+        self.model_select = "model0"
 
     def set_log_name(self, cfg):
 
         key_list = cfg.keys()
         for key in key_list:
+            if key == "pre_trained":
+                continue
             self.log_name += "-" + key + str(cfg[key])
 
     def set_default_AlexNet_Model(self):
@@ -72,7 +89,7 @@ class Classifier:
                    use_bias=False)(x)
 
         x = BatchNormalization()(x)
-        X = Activation('relu')(x)
+        x = Activation('relu')(x)
         x = MaxPool2D(pool_size=3, strides=2)(x)
 
         x = Flatten()(x)
@@ -88,7 +105,6 @@ class Classifier:
 
         _input = Input(shape=(self.image_height, self.image_width, 1))
 
-        self.name += "[C{}.{}.{}]".format(conv_layers[0][0], conv_layers[0][1], conv_layers[0][2])
         x = Conv2D(filters=conv_layers[0][0],
                    kernel_size=conv_layers[0][1],
                    strides=conv_layers[0][2],
@@ -98,7 +114,6 @@ class Classifier:
         x = MaxPool2D(pool_size=3, strides=2)(x)
 
         for layer_ in conv_layers[1:]:
-            self.name += "[C{}.{}.{}]".format(layer_[0], layer_[1], layer_[2])
             x = Conv2D(filters=layer_[0],
                        kernel_size=layer_[1],
                        strides=layer_[2],
@@ -135,57 +150,68 @@ class Classifier:
         return dt_generator.flow_from_directory(path_dir,
                                                 target_size=(self.image_width, self.image_height),  # input image size
                                                 batch_size=self.batch_size,  # batch size
-                                                classes=st.CLASSES)
+                                                classes=st.CLASSES,
+                                                shuffle=True)
 
     def train(self, gen_train, gen_val, epochs):
-        checkpoint_path = os.path.join(st.DIR_LOG, "RUNNING", self.log_name, "cp-{epoch:04d}.ckpt")
+        checkpoint_path = os.path.join(st.DIR_LOG, "RUNNING", self.log_name,
+                                    #    "'model-{epoch:03d}-{accuracy:03f}.ckpt", 
+                                       "cp-model.ckpt")
         # ! Create callback checkpoint
-        model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-            filepath=checkpoint_path,
-            save_weights_only=True,
-            monitor='val_acc',
-            mode='max',
-            save_best_only=True,
-            save_freq=5,
-            verbose=0)
+        model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                                       save_weights_only=True,
+                                                                       monitor='loss',
+                                                                       mode='min',
+                                                                       save_best_only=True,
+                                                                       save_freq='epoch',
+                                                                       verbose=1)
 
         self.callbacks.append(model_checkpoint_callback)
 
-        lr_schedule = optimizers.schedules.ExponentialDecay(initial_learning_rate=1e-3,
-                                                            decay_steps=500,
-                                                            decay_rate=0.5)
+        lr_schedule = optimizers.schedules.ExponentialDecay(initial_learning_rate=self.lr["lr"],
+                                                            decay_steps=self.lr["decay_steps"],
+                                                            decay_rate=self.lr["decay_rate"])
 
         self.model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=lr_schedule,
-                                                             momentum=0.01,
+                                                             momentum=self.lr["momentum"],
                                                              nesterov=False),
-                           loss='categorical_crossentropy', metrics=['accuracy'])
+                           loss=self.custom_loss(self.mask_in[self.model_select]), metrics=['accuracy'])
+        # self.model.compile(optimizer=tf.keras.optimizers.Adam(),
+        #                    loss=self.custom_loss(self.mask_in[self.model_select]), metrics=['accuracy'])
+        self.model.fit(gen_train,
+                       steps_per_epoch=np.floor(gen_train.n / self.batch_size),
+                       epochs=epochs,
+                       #    validation_data=gen_train,
+                       #    validation_steps=np.floor(gen_train.n / self.batch_size),
+                       callbacks=self.callbacks)
 
-        self.model.fit(
-            gen_train,
-            steps_per_epoch=np.floor(gen_train.n / self.batch_size),
-            epochs=epochs,
-            validation_data=gen_val,
-            validation_steps=np.floor(gen_val.n / self.batch_size),
-            callbacks=self.callbacks)
-
-    def model_predict(self, image_path):
+    def model_predict(self, image_path, dip_filter=False):
         assert os.path.isfile(image_path)
         # Loads image into PIL
-        img = load_img(image_path, grayscale=False, color_mode="rgb", target_size=(224, 224), interpolation="nearest")
+        img = load_img(image_path, grayscale=True, color_mode="rgb", target_size=(224, 224), interpolation="nearest")
         # Converts PIL to np array
-        img = img_to_array(img)
+        if dip_filter:
+            img = he(img_to_array(img))
+        else:
+            img = img_to_array(img)
         # creates a batch for single image
         img = np.array([img]) / 255
         # Finds the index of highest value after prediction [0 0 0 1 0 0]
         predict = self.model.predict(img)
-        result = np.argmax(predict)
-        return result
+        # if np.max(predict) < 0.5:
+        #     return -1
+        return np.argmax(predict)
 
     def dip_filtering(self, image):
         if self.random_boost:
-            return he(image)
-        else:
             return random_he(image)
+        else:
+            return he(image)
+
+    def custom_loss(self, mask):
+        def loss(y_true, y_pred):
+            return cce(y_pred=y_pred*mask, y_true=y_true*mask)
+        return loss
 
 
 if __name__ == '__main__':

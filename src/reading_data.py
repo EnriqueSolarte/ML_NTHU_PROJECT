@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-import src.setup as st
+import setup as st
 import pandas as pd
 import os
 import shutil
@@ -9,7 +9,7 @@ import cv2
 
 
 class Data:
-    def __init__(self, validation_ratio=0.5):
+    def __init__(self, validation_ratio=None):
         self.dt_dict = dict()
         self.length = dict()
         self.isSorted = False
@@ -18,8 +18,10 @@ class Data:
             dt = pd.read_csv(csv_file).values
             self.dt_dict[cat] = dt
             self.length[cat] = dt.shape[0]
-        self.unsort_dataset()
-        self.sort_dataset(split_data_ratio=validation_ratio)
+
+        if validation_ratio is not None:
+            self.unsort_dataset()
+            self.sort_dataset(split_data_ratio=validation_ratio)
 
     def sort_dataset(self, split_data_ratio=0.5):
         assert os.path.isdir(st.DATA_TRAIN_DIR)
@@ -42,6 +44,11 @@ class Data:
             idx_split = int(len(files_per_cat) * split_data_ratio)
             for list_images, dir_ in zip([files_per_cat[idx_split:], files_per_cat[0:idx_split]],
                                          [st.DATA_TRAIN_DIR, st.DATA_VALIDATION_DIR]):
+                
+                if split_data_ratio == 0:
+                    if dir_ == st.DATA_VALIDATION_DIR:
+                        continue
+                    
                 list_files_destine = [os.path.join(dir_, class_label, file) for file in list_images]
                 list_files_origin = [os.path.join(st.DATA_TRAIN_DIR, file) for file in list_images]
                 [shutil.move(src, dst)
@@ -95,13 +102,21 @@ class Data:
         return cv2.imread(image_file, 0), os.path.split(image_file)[1]
 
     def get_sample(self, cat, idx=0):
+        image_file, label = self.get_image_file(cat, idx)
+        return cv2.imread(image_file, 0), label
+
+    def get_image_file(self, cat, idx=0, encode_label=False):
         assert cat in ["train", "test"]
         assert idx < self.length[cat]
         image_file = os.path.join(st.DATA_TRAIN_DIR, st.CLASSES[self.dt_dict[cat][idx, 1]], self.dt_dict[cat][idx, 0])
         if not os.path.isfile(image_file):
             image_file = os.path.join(st.DATA_VALIDATION_DIR, st.CLASSES[self.dt_dict[cat][idx, 1]],
                                       self.dt_dict[cat][idx, 0])
-        return cv2.imread(image_file, 0), st.CLASSES[self.dt_dict[cat][idx, 1]]
+        if encode_label:
+            label = self.dt_dict[cat][idx, 1]
+        else:
+            label = st.CLASSES[self.dt_dict[cat][idx, 1]]
+        return image_file, label
 
 
 if __name__ == '__main__':
