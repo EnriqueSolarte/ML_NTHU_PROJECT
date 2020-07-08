@@ -76,9 +76,9 @@ root/
 ├── evaluate_test_data.py
 └── training_classifier.py
 ```
-In order to use this classifier the following script can be taken as reference ```evaluate_classifier.py```, ```evaluate_test_data.py```, and ```training_classifier.py```.
+In order to use this classifier the following scripts can be taken as reference ```evaluate_classifier.py```, ```evaluate_test_data.py```, and ```training_classifier.py```.
 
-The usage for this script are described as follows:
+The usage for these scripts are described as follows:
 
 **evaluate_classifier.py**
 ```py
@@ -107,7 +107,7 @@ eval_model(cfg=config)
 
 **training_classifier.py**
 ```py
-from evaluate_test_data import eval_model
+from training_classifier import train
 
 config = dict(shape=(224, 224),
                 batch=200, # batch-size
