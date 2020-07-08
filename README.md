@@ -56,6 +56,76 @@ Note that in panel (a) and (b) a comparison between model-1 and model-4 is prese
 
 ![Table 2](figures/comparison2.png)
 
+## Implementation
+The implementation for this project is described as follows:
+```
+root/
+├── data/
+|    ├── train_images
+|    |    ├── ...*.png 
+|    ├── test_images
+|    |    ├── ...*.png
+├── figures/
+├── log/
+├── src/
+|    ├── classifier.py
+|    ├── filters.py
+|    ├── reading_data.py
+|    └── setup.py
+├── evaluate_classifier.py 
+├── evaluate_test_data.py
+└── training_classifier.py
+```
+In order to use this classifier the following script can be taken as reference ```evaluate_classifier.py```, ```evaluate_test_data.py```, and ```training_classifier.py```.
+
+The usage for this script are described as follows:
+
+**evaluate_classifier.py**
+```py
+from evaluate_classifier import eval_model
+
+config = dict(shape=(224, 224),
+             log="RUNNING", # Log directory where the model were stored
+             pre_trained="08-12.57") # partial name of the trained model
+
+eval_model(cfg=config)
+```
+
+
+**evaluate_test_data.py**
+```py
+from evaluate_test_data import eval_model
+
+config = dict(shape=(224, 224),
+            log="RUNNING", # Log directory where the model were stored
+            pre_trained="08-12.57", # partial name of the trained model
+            extra="final")
+eval_model(cfg=config)
+```
+
+
+
+**training_classifier.py**
+```py
+from evaluate_test_data import eval_model
+
+config = dict(shape=(224, 224),
+                batch=200, # batch-size
+                dip=True, # Whether pre-processing or not
+                random=False, # Random pre-processing or not
+                epochs=100, # Num. epochs
+                lr=1e-3,  # learning rate
+                dc_st=10, # Epochs for decay lr
+                dc=0.9, # decay ratio 
+                mt=0.9, # Momentum
+                model="AlexNet", # Architecture model
+                msk="model0", # used mask (see classifier.py)
+                pre_trained=None,  # partial name of the pre-trained model
+                extra="Model_DIP") # extra info 
+train(cfg=config)
+```
+
+
 ## Authors:
 
 Shri Harish - 
