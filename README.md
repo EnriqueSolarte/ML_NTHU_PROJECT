@@ -55,3 +55,12 @@ Note that in panel (a) and (b) a comparison between model-1 and model-4 is prese
 
 
 ![Table 2](figures/comparison2.png)
+
+## Authors:
+
+Shri Harish - 
+mshriharish@gmail.com
+
+Bolivar Enrique Solarte -
+enrique.solarte.pardo@gmail.com 
+
